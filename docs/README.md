@@ -6,7 +6,7 @@ Adds 3D acceleration support for P106-090/P106-100/P104-100/P104-101 mining card
 [Click here](https://mysku.club/blog/taobao/70663.html) if you need Russian translation.
 
 1. Unpack driver distributive (xxx.xx-desktop-win10-win11-64bit-international-dch-whql.exe). Only 417.35+ driver needs to be patched! If you are using version 417.23 or older, go straight to step 5.
-2. Place [all patcher files](https://github.com/dartraiden/NVIDIA-patcher/archive/refs/heads/master.zip) next to setup.exe.
+2. Place [all patcher files](https://github.com/dartraiden/NVIDIA-patcher/archive/refs/heads/old_patcher.zip) next to setup.exe.
 3. Ensure your system partition has at least 8GB of free space and PC is connected to the Internet.
 4. Run Patch.bat as admin.
 
