@@ -124,14 +124,9 @@ if exist "%DRIVER%\nvlddmkm.sys" makecab "%DRIVER%\nvlddmkm.sys" /L "%DRIVER%"
 del "%DRIVER%\nv_disp.cat"
 
 inf2cat /driver:"%DRIVER%" /os:10_X64
-if not %ERRORLEVEL%==0 (
-	echo Failed to generate catalog file^^!
-	pause
-	goto CLEAN
-)
 
 if not exist "%DRIVER%\nv_disp.cat" (
-	echo nv_disp.cat is not exist^^!
+	echo Failed to generate catalog file^^!
 	goto CLEAN
 )
 
