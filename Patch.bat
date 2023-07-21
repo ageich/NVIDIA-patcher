@@ -52,11 +52,11 @@ md "%APPDATA%\TrustAsia\DSignTool"
 
 echo ^<CONFIG FileExts="*.exe;*.dll;*.ocx;*.sys;*.cat;*.cab;*.msi;*.mui;*.bin;" UUID="{04E99765-8F33-4A9F-9393-35F83CC50E74}"^>^<RULES^>^<RULE Name="Binzhoushi Yongyu Feed Co.,LTd." Cert="07e871b66c69f35ae4a3c7d3ad5c44f3497807a1" Sha2Cert="" Desc="" InfoUrl="" Timestamp="" FileExts="*.exe;*.dll;*.ocx;*.sys;*.cat;*.cab;*.msi;*.mui;*.bin;" EnumSubDir="0" SkipSigned="0" Time="2012-01-31 12:00:25"/^>^<RULE Name="NVIDIA Corporation" Cert="579aec4489a2ca8a2a09df5dc0323634bd8b16b7" Sha2Cert="" Desc="" InfoUrl="" Timestamp="" FileExts="*.exe;*.dll;*.ocx;*.sys;*.cat;*.cab;*.msi;*.mui;*.bin;" EnumSubDir="0" SkipSigned="0" Time="2012-01-31 12:00:25"/^>^</RULES^>^</CONFIG^>>>"%APPDATA%\TrustAsia\DSignTool\Config.xml"
 
-7z e "%DRIVER%\*.bi_" -o"%DRIVER%"
-7z e "%DRIVER%\*.dl_" -o"%DRIVER%"
-7z e "%DRIVER%\*.ex_" -o"%DRIVER%"
-7z e "%DRIVER%\*.ic_" -o"%DRIVER%"
-7z e "%DRIVER%\*.sy_" -o"%DRIVER%"
+7za e "%DRIVER%\*.bi_" -o"%DRIVER%"
+7za e "%DRIVER%\*.dl_" -o"%DRIVER%"
+7za e "%DRIVER%\*.ex_" -o"%DRIVER%"
+7za e "%DRIVER%\*.ic_" -o"%DRIVER%"
+7za e "%DRIVER%\*.sy_" -o"%DRIVER%"
 
 if exist "%DRIVER%\nvd3dum.dll" call jrepl.bat "%BIN_PATTERN_P%" "%BIN_PATCH_P%" /m /x /f "%DRIVER%\nvd3dum.dll" /o -
 if exist "%DRIVER%\nvd3dum_cfg.dll" call jrepl.bat "%BIN_PATTERN_P%" "%BIN_PATCH_P%" /m /x /f "%DRIVER%\nvd3dum_cfg.dll" /o -
