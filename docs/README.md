@@ -1,3 +1,5 @@
+# *Does not work anymore due to certificate blocking and timestamp server shutdown*
+
 # NVIDIA patcher
 
 Adds 3D acceleration support for P106-090/P106-100/P104-100/P104-101 mining cards.
