@@ -1,4 +1,4 @@
-# **Does not work anymore due to certificate blocking**
+# **Does not work anymore due to [certificate blocking](https://msrc.microsoft.com/update-guide/vulnerability/ADV230001)**
 
 # NVIDIA patcher
 
