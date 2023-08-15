@@ -60,11 +60,13 @@ md "%AppData%\TrustAsia\DSignTool"
 echo ^<CONFIG FileExts="*.exe;*.dll;*.ocx;*.sys;*.cat;*.cab;*.msi;*.mui;*.bin;" UUID="{04E99765-8F33-4A9F-9393-35F83CC50E74}"^>^<RULES^>^<RULE Name="Binzhoushi Yongyu Feed Co.,LTd." Cert="07e871b66c69f35ae4a3c7d3ad5c44f3497807a1" Sha2Cert="" Desc="" InfoUrl="" Timestamp="" FileExts="*.exe;*.dll;*.ocx;*.sys;*.cat;*.cab;*.msi;*.mui;*.bin;" EnumSubDir="0" SkipSigned="0" Time="2012-01-31 12:00:25"/^>^<RULE Name="NVIDIA Corporation" Cert="579aec4489a2ca8a2a09df5dc0323634bd8b16b7" Sha2Cert="" Desc="" InfoUrl="" Timestamp="" FileExts="*.exe;*.dll;*.ocx;*.sys;*.cat;*.cab;*.msi;*.mui;*.bin;" EnumSubDir="0" SkipSigned="0" Time="2012-01-31 12:00:25"/^>^</RULES^>^</CONFIG^>>>"%AppData%\TrustAsia\DSignTool\Config.xml"
 
 :UnpackDriverFiles
-7za.exe e "%DriverPath%\*.bi_" -o"%DriverPath%"
-7za.exe e "%DriverPath%\*.dl_" -o"%DriverPath%"
-7za.exe e "%DriverPath%\*.ex_" -o"%DriverPath%"
-7za.exe e "%DriverPath%\*.ic_" -o"%DriverPath%"
-7za.exe e "%DriverPath%\*.sy_" -o"%DriverPath%"
+if %Version% lss 535 (
+	7za.exe e "%DriverPath%\*.bi_" -o"%DriverPath%"
+	7za.exe e "%DriverPath%\*.dl_" -o"%DriverPath%"
+	7za.exe e "%DriverPath%\*.ex_" -o"%DriverPath%"
+	7za.exe e "%DriverPath%\*.ic_" -o"%DriverPath%"
+	7za.exe e "%DriverPath%\*.sy_" -o"%DriverPath%"
+)
 
 :Patch3dAcceleration
 if exist "%DriverPath%\nvd3dum.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvd3dum.dll" /o -
@@ -109,17 +111,19 @@ if exist "%DriverPath%\nvwgf2umx_cfg.dll" signtool.exe timestamp /t "http://tsa.
 if exist "%DriverPath%\nvlddmkm.sys" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvlddmkm.sys"
 
 :Pack3dBinaries
-if exist "%DriverPath%\nvd3dum.dll" makecab "%DriverPath%\nvd3dum.dll" /l "%DriverPath%"
-if exist "%DriverPath%\nvd3dum_cfg.dll" makecab "%DriverPath%\nvd3dum_cfg.dll" /l "%DriverPath%"
-if exist "%DriverPath%\nvd3dumx.dll" makecab "%DriverPath%\nvd3dumx.dll" /l "%DriverPath%"
-if exist "%DriverPath%\nvd3dumx_cfg.dll" makecab "%DriverPath%\nvd3dumx_cfg.dll" /l "%DriverPath%"
-if exist "%DriverPath%\nvoglv32.dll" makecab "%DriverPath%\nvoglv32.dll" /l "%DriverPath%"
-if exist "%DriverPath%\nvoglv64.dll" makecab "%DriverPath%\nvoglv64.dll" /l "%DriverPath%"
-if exist "%DriverPath%\nvwgf2um.dll" makecab "%DriverPath%\nvwgf2um.dll" /l "%DriverPath%"
-if exist "%DriverPath%\nvwgf2um_cfg.dll" makecab "%DriverPath%\nvwgf2um.dll" /l "%DriverPath%"
-if exist "%DriverPath%\nvwgf2umx.dll" makecab "%DriverPath%\nvwgf2umx.dll" /l "%DriverPath%"
-if exist "%DriverPath%\nvwgf2umx_cfg.dll" makecab "%DriverPath%\nvwgf2umx_cfg.dll" /l "%DriverPath%"
-if exist "%DriverPath%\nvlddmkm.sys" makecab "%DriverPath%\nvlddmkm.sys" /l "%DriverPath%"
+	if %Version% lss 535 (
+	if exist "%DriverPath%\nvd3dum.dll" makecab "%DriverPath%\nvd3dum.dll" /l "%DriverPath%"
+	if exist "%DriverPath%\nvd3dum_cfg.dll" makecab "%DriverPath%\nvd3dum_cfg.dll" /l "%DriverPath%"
+	if exist "%DriverPath%\nvd3dumx.dll" makecab "%DriverPath%\nvd3dumx.dll" /l "%DriverPath%"
+	if exist "%DriverPath%\nvd3dumx_cfg.dll" makecab "%DriverPath%\nvd3dumx_cfg.dll" /l "%DriverPath%"
+	if exist "%DriverPath%\nvoglv32.dll" makecab "%DriverPath%\nvoglv32.dll" /l "%DriverPath%"
+	if exist "%DriverPath%\nvoglv64.dll" makecab "%DriverPath%\nvoglv64.dll" /l "%DriverPath%"
+	if exist "%DriverPath%\nvwgf2um.dll" makecab "%DriverPath%\nvwgf2um.dll" /l "%DriverPath%"
+	if exist "%DriverPath%\nvwgf2um_cfg.dll" makecab "%DriverPath%\nvwgf2um.dll" /l "%DriverPath%"
+	if exist "%DriverPath%\nvwgf2umx.dll" makecab "%DriverPath%\nvwgf2umx.dll" /l "%DriverPath%"
+	if exist "%DriverPath%\nvwgf2umx_cfg.dll" makecab "%DriverPath%\nvwgf2umx_cfg.dll" /l "%DriverPath%"
+	if exist "%DriverPath%\nvlddmkm.sys" makecab "%DriverPath%\nvlddmkm.sys" /l "%DriverPath%"
+)
 
 :CheckNvencPatchPresence
 for /f %%a in ( 'curl -o nul -s -Iw "%%{http_code}" "%Nvenc64PatchUrl%"' ) do set http=%%a
@@ -148,8 +152,10 @@ if exist "%DriverPath%\nvencodeapi.dll" signtool.exe timestamp /t "http://tsa.pk
 if exist "%DriverPath%\nvencodeapi64.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvencodeapi64.dll"
 
 :PackNvencBinaries
-if exist "%DriverPath%\nvencodeapi.dll" makecab "%DriverPath%\nvencodeapi.dll" /l "%DriverPath%"
-if exist "%DriverPath%\nvencodeapi64.dll" makecab "%DriverPath%\nvencodeapi64.dll" /l "%DriverPath%"
+if %Version% lss 535 (
+	if exist "%DriverPath%\nvencodeapi.dll" makecab "%DriverPath%\nvencodeapi.dll" /l "%DriverPath%"
+	if exist "%DriverPath%\nvencodeapi64.dll" makecab "%DriverPath%\nvencodeapi64.dll" /l "%DriverPath%"
+)
 
 :GenerateCatalogFile
 del "%DriverPath%\nv_disp.cat"
