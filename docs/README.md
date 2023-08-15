@@ -10,6 +10,8 @@ Adds 3D acceleration support for P106-090/P106-100/P104-100/P104-101 mining card
 3. Ensure your system partition has at least 8GB of free space and PC is connected to the Internet.
 4. Run Patch.bat as admin.
 
+**Attention, do not apply the NVENC patch if you are not sure of success. If your card does not have hardware NVENC support, the patch will cause problems (crashes) in applications using NVENC**
+
 The result of the patch will be a signed `/Display.Driver/nv_disp.cat` file. Check the signature in its properties, it should be valid:
 
 ![Valid signature](/docs/signature.jpg)

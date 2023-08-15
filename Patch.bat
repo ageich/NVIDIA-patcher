@@ -132,7 +132,7 @@ if not %http% == 200 goto GenerateCatalogFile
 
 :AskUserAboutNvenc
 echo.
-choice /m "Do you want to apply NVENC patch? This may enable NVENC support on some cards"
+choice /m "Do you want to apply NVENC patch? This may enable NVENC support on some cards. Attention, do not apply the NVENC patch if you are not sure of success. If your card does not have hardware NVENC support, the patch will cause problems (crashes) in applications using NVENC"
 if %ErrorLevel% == 1 goto DownloadNvencPatches
 if %ErrorLevel% == 2 goto GenerateCatalogFile
 
