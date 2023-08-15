@@ -108,10 +108,6 @@ if exist "%DriverPath%\nvwgf2umx_cfg.dll" (
 	signtool remove /s "%DriverPath%\nvwgf2umx_cfg.dll"
 	signtool.exe sign /f NVIDIA.pfx /p "" /ac "VeriSign Class 3 Public Primary Certification Authority - G5.cer" /t "http://localhost/TSA/2013-01-01T00:00:00" "%DriverPath%\nvwgf2umx_cfg.dll"
 )
-if exist "%DriverPath%\nvlddmkm.sys" (
-	signtool remove /s "%DriverPath%\nvlddmkm.sys"
-	signtool.exe sign /f NVIDIA.pfx /p "" /ac "VeriSign Class 3 Public Primary Certification Authority - G5.cer" /t "http://localhost/TSA/2013-01-01T00:00:00" "%DriverPath%\nvlddmkm.sys"
-)
 w32tm /resync /nowait >nul
 
 :Pack3dBinaries
