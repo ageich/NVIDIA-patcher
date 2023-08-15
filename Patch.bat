@@ -10,11 +10,15 @@ IF %ERRORLEVEL% neq 0 (
 @setlocal enableextensions enabledelayedexpansion
 @cd /d "%~DP0"
 
+set /P VERSION=Enter driver version:
+if not defined VERSION set VERSION=0.0
 set DRIVER=%CD%\Display.Driver
 set BIN_PATTERN=\xC2\x15\x07\x00\x07\x1B\x07\x00\x87\x1B\x07\x00\xC7\x1B\x07\x00\x07\x1C\x07\x00\x09\x1C\x07\x00\x83\x1D\x07\x00\x84\x1D\x07\x00\xC1\x1D\x07\x00\x09\x1E\x07\x00\x49\x1E\x07\x00\xBC\x1E\x07\x00\xFC\x1E\x07\x00\x0B\x1F\x07\x00\x81\x20\x07\x00\x82\x20\x07\x00\x83\x20\x07\x00\xC2\x20\x07\x00\x89\x21\x07\x00\x0D\x22\x07\x00\x4D\x22\x07\x00\x8A\x24\x07\x00\xCA\x24\x07\x00\x0A\x25\x07\x00
 set BIN_PATCH=\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00
 set BIN_PATTERN_SLI=\x84\xC0\x75\x05\x0F\xBA\x6B
 set BIN_PATCH_SLI=\xC7\x43\x24\x00\x00\x00\x00
+set NVENC32_PATCH_URL=https://raw.githubusercontent.com/keylase/nvidia-patch/master/win/win10_x64/%VERSION%/nvencodeapi.1337
+set NVENC64_PATCH_URL=https://raw.githubusercontent.com/keylase/nvidia-patch/master/win/win10_x64/%VERSION%/nvencodeapi64.1337
 
 if not exist "%DRIVER%" (
 	echo %DRIVER% not found^^! Unpack driver distributive and place unpacked files next to Patch.bat
@@ -107,6 +111,34 @@ if exist "%DRIVER%\nvwgf2umx.dll" makecab "%DRIVER%\nvwgf2umx.dll" /L "%DRIVER%"
 if exist "%DRIVER%\nvwgf2umx_cfg.dll" makecab "%DRIVER%\nvwgf2umx_cfg.dll" /L "%DRIVER%"
 if exist "%DRIVER%\nvlddmkm.sys" makecab "%DRIVER%\nvlddmkm.sys" /L "%DRIVER%"
 
+set HTTP=
+for /f %%a in ( 'curl -o NUL -s -Iw "%%{http_code}" "%NVENC64_PATCH_URL%"' ) do set HTTP=%%a
+if "%HTTP%" neq "200" (
+	goto :NONVENC
+)
+
+cls
+CHOICE /M "Do you want to apply NVENC patch? This may enable NVENC support on some cards."
+IF %ERRORLEVEL% equ 1 GOTO NVENC
+IF %ERRORLEVEL% equ 2 GOTO NONVENC
+
+:NVENC
+curl -s -O %NVENC32_PATCH_URL%
+curl -s -O %NVENC64_PATCH_URL%
+
+echo Apply NVENC patch manually now
+pause
+
+if exist "%DRIVER%\nvencodeapi.dll" CSignTool sign /r "NVIDIA Corporation" /f "%DRIVER%\nvencodeapi.dll" -ts 2013-01-01T00:00:00
+if exist "%DRIVER%\nvencodeapi64.dll" CSignTool sign /r "NVIDIA Corporation" /f "%DRIVER%\nvencodeapi64.dll" -ts 2013-01-01T00:00:00
+
+if exist "%DRIVER%\nvencodeapi.dll" signtool timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DRIVER%\nvencodeapi.dll"
+if exist "%DRIVER%\nvencodeapi64.dll" signtool timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DRIVER%\nvencodeapi64.dll"
+
+if exist "%DRIVER%\nvencodeapi.dll" makecab "%DRIVER%\nvencodeapi.dll" /L "%DRIVER%"
+if exist "%DRIVER%\nvencodeapi64.dll" makecab "%DRIVER%\nvencodeapi64.dll" /L "%DRIVER%"
+
+:NONVENC
 del "%DRIVER%\nv_disp.cat"
 
 inf2cat /driver:"%DRIVER%" /os:10_X64
@@ -140,8 +172,10 @@ if not !ERRORLEVEL!==0 (
 
 :CLEAN
 rd "%PROGRAMDATA%\JREPL" /s /q
+rd "%LOCALAPPDATA%\DeFconX" /s /q
 rd "%APPDATA%\TrustAsia" /s /q
 rd "%TEMP%\WST" /s /q
+del *.1337
 
 certutil -store -user My|find "07e871b66c69f35ae4a3c7d3ad5c44f3497807a1" >nul
 if !ERRORLEVEL!==0 (
