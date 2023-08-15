@@ -1,4 +1,4 @@
-# *Does not work anymore due to certificate blocking and timestamp server shutdown*
+# **Does not work anymore due to certificate blocking**
 
 # NVIDIA patcher
 
