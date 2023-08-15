@@ -31,6 +31,7 @@ if not exist "%DriverPath%" (
 
 :UnpackDriverFiles
 if %Version% lss 535 (
+	title Unpacking driver...
 	7za.exe e "%DriverPath%\*.bi_" -o"%DriverPath%"
 	7za.exe e "%DriverPath%\*.dl_" -o"%DriverPath%"
 	7za.exe e "%DriverPath%\*.ex_" -o"%DriverPath%"
@@ -39,6 +40,7 @@ if %Version% lss 535 (
 )
 
 :Patch3dAcceleration
+title Patching 3D acceleration support...
 if exist "%DriverPath%\nvd3dum.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvd3dum.dll" /o -
 if exist "%DriverPath%\nvd3dum_cfg.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvd3dum_cfg.dll" /o -
 if exist "%DriverPath%\nvd3dumx.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvd3dumx.dll" /o -
@@ -52,9 +54,13 @@ if exist "%DriverPath%\nvwgf2umx_cfg.dll" call JREPL.bat "%Pattern%" "%Patch%" /
 if exist "%DriverPath%\nvlddmkm.sys" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvlddmkm.sys" /o -
 
 :PatchSliSupport
-if %Version% == 446.14 call JREPL.bat "%PatternSli%" "%PatchSli%" /m /x /f "%DriverPath%\nvlddmkm.sys" /o -
+if %Version% == 446.14 (
+	title Patching SLI support...
+	call JREPL.bat "%PatternSli%" "%PatchSli%" /m /x /f "%DriverPath%\nvlddmkm.sys" /o -
+)
 
 :Sign3dBinaries
+title Signind 3D acceleration binaries...
 date 01-01-2013
 if exist "%DriverPath%\nvd3dum.dll" (
 	signtool remove /s "%DriverPath%\nvd3dum.dll"
@@ -104,6 +110,7 @@ w32tm /resync /nowait >nul
 
 :Pack3dBinaries
 	if %Version% lss 535 (
+	title Packing 3D acceleration binaries...
 	if exist "%DriverPath%\nvd3dum.dll" makecab "%DriverPath%\nvd3dum.dll" /l "%DriverPath%"
 	if exist "%DriverPath%\nvd3dum_cfg.dll" makecab "%DriverPath%\nvd3dum_cfg.dll" /l "%DriverPath%"
 	if exist "%DriverPath%\nvd3dumx.dll" makecab "%DriverPath%\nvd3dumx.dll" /l "%DriverPath%"
@@ -128,6 +135,7 @@ if %ErrorLevel% == 1 goto DownloadNvencPatches
 if %ErrorLevel% == 2 goto GenerateCatalogFile
 
 :DownloadNvencPatches
+title Downloading NVENC patches...
 curl -s -O %Nvenc32PatchUrl%
 curl -s -O %Nvenc64PatchUrl%
 
@@ -136,6 +144,7 @@ echo Apply NVENC patch manually now
 pause
 
 :SignNvencBinaries
+title Signind NVENC binaries...
 date 01-01-2013
 if exist "%DriverPath%\nvencodeapi.dll" signtool.exe sign /f NVIDIA.pfx /p "" /ac "VeriSign Class 3 Public Primary Certification Authority - G5.cer" /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvencodeapi.dll"
 if exist "%DriverPath%\nvencodeapi64.dll" signtool.exe sign /f NVIDIA.pfx /p "" /ac "VeriSign Class 3 Public Primary Certification Authority - G5.cer" /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvencodeapi64.dll"
@@ -143,11 +152,13 @@ w32tm /resync /nowait >nul
 
 :PackNvencBinaries
 if %Version% lss 535 (
+	title Packing NVENC binaries...
 	if exist "%DriverPath%\nvencodeapi.dll" makecab "%DriverPath%\nvencodeapi.dll" /l "%DriverPath%"
 	if exist "%DriverPath%\nvencodeapi64.dll" makecab "%DriverPath%\nvencodeapi64.dll" /l "%DriverPath%"
 )
 
 :GenerateCatalogFile
+title Generating catalog file...
 del "%DriverPath%\nv_disp.cat"
 Inf2Cat.exe /driver:"%DriverPath%" /os:10_x64
 
@@ -159,6 +170,7 @@ if not exist "%DriverPath%\nv_disp.cat" (
 )
 
 :SignCatalogFile
+title Signing catalog file...
 date 01-01-2015
 signtool.exe sign /f "Yongyu.pfx" /p "440" /ac "thawte Primary Root CA.cer" /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2015-01-01T00:00:00" "%DriverPath%\nv_disp.cat"
 if not %ErrorLevel% == 0 (
