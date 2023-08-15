@@ -29,36 +29,6 @@ if not exist "%DriverPath%" (
 	exit /b 1
 )
 
-:ImportCustomSigningCertificate
-certutil -store -user My|find "07e871b66c69f35ae4a3c7d3ad5c44f3497807a1" >nul
-if not %ErrorLevel% == 0 (
-	certutil -f -user -p "440" -importpfx "Yongyu.pfx" NoRoot
-		if not !ErrorLevel! == 0 (
-			echo Failed to install Binzhoushi Yongyu Feed Co.,LTd. code signing certificate^^!
-			pause
-			exit /b 1
-		)
-)
-
-:ImportNvidiaSigningCertificate
-certutil -store -user My|find "579aec4489a2ca8a2a09df5dc0323634bd8b16b7" >nul
-if not %ErrorLevel% == 0 (
-	certutil -f -user -p "" -importpfx NVIDIA.pfx NoRoot
-		if not !ErrorLevel! == 0 (
-			echo Failed to install NVIDIA Corporation code signing certificate^^!
-			pause
-			goto Clean
-			exit /b 1
-		)
-)
-
-:RemoveDsigntoolConfig
-if exist "%AppData%\TrustAsia\DSignTool" rd "%AppData%\TrustAsia\DSignTool" /s /q || echo Failed to delete old CSigntool/DSignTool config^^! Make sure you have write access to the %AppData%\TrustAsia\DSignTool directory. && pause && goto Clean && exit /b 1
-
-:CreateDsigntoolConfig
-md "%AppData%\TrustAsia\DSignTool"
-echo ^<CONFIG FileExts="*.exe;*.dll;*.ocx;*.sys;*.cat;*.cab;*.msi;*.mui;*.bin;" UUID="{04E99765-8F33-4A9F-9393-35F83CC50E74}"^>^<RULES^>^<RULE Name="Binzhoushi Yongyu Feed Co.,LTd." Cert="07e871b66c69f35ae4a3c7d3ad5c44f3497807a1" Sha2Cert="" Desc="" InfoUrl="" Timestamp="" FileExts="*.exe;*.dll;*.ocx;*.sys;*.cat;*.cab;*.msi;*.mui;*.bin;" EnumSubDir="0" SkipSigned="0" Time="2012-01-31 12:00:25"/^>^<RULE Name="NVIDIA Corporation" Cert="579aec4489a2ca8a2a09df5dc0323634bd8b16b7" Sha2Cert="" Desc="" InfoUrl="" Timestamp="" FileExts="*.exe;*.dll;*.ocx;*.sys;*.cat;*.cab;*.msi;*.mui;*.bin;" EnumSubDir="0" SkipSigned="0" Time="2012-01-31 12:00:25"/^>^</RULES^>^</CONFIG^>>>"%AppData%\TrustAsia\DSignTool\Config.xml"
-
 :UnpackDriverFiles
 if %Version% lss 535 (
 	7za.exe e "%DriverPath%\*.bi_" -o"%DriverPath%"
@@ -85,30 +55,52 @@ if exist "%DriverPath%\nvlddmkm.sys" call JREPL.bat "%Pattern%" "%Patch%" /m /x 
 if %Version% == 446.14 call JREPL.bat "%PatternSli%" "%PatchSli%" /m /x /f "%DriverPath%\nvlddmkm.sys" /o -
 
 :Sign3dBinaries
-if exist "%DriverPath%\nvd3dum.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvd3dum.dll" -ts 2013-01-01T00:00:00
-if exist "%DriverPath%\nvd3dum_cfg.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvd3dum_cfg.dll" -ts 2013-01-01T00:00:00
-if exist "%DriverPath%\nvd3dumx.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvd3dumx.dll" -ts 2013-01-01T00:00:00
-if exist "%DriverPath%\nvd3dumx_cfg.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvd3dumx_cfg.dll" -ts 2013-01-01T00:00:00
-if exist "%DriverPath%\nvoglv32.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvoglv32.dll" -ts 2013-01-01T00:00:00
-if exist "%DriverPath%\nvoglv64.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvoglv64.dll" -ts 2013-01-01T00:00:00
-if exist "%DriverPath%\nvwgf2um.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvwgf2um.dll" -ts 2013-01-01T00:00:00
-if exist "%DriverPath%\nvwgf2um_cfg.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvwgf2um_cfg.dll" -ts 2013-01-01T00:00:00
-if exist "%DriverPath%\nvwgf2umx.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvwgf2umx.dll" -ts 2013-01-01T00:00:00
-if exist "%DriverPath%\nvwgf2umx_cfg.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvwgf2umx_cfg.dll" -ts 2013-01-01T00:00:00
-if exist "%DriverPath%\nvlddmkm.sys" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvlddmkm.sys" -ts 2013-01-01T00:00:00
-
-:Timestamp3dBinaries
-if exist "%DriverPath%\nvd3dum.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvd3dum.dll"
-if exist "%DriverPath%\nvd3dum_cfg.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvd3dum_cfg.dll"
-if exist "%DriverPath%\nvd3dumx.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvd3dumx.dll"
-if exist "%DriverPath%\nvd3dumx_cfg.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvd3dumx_cfg.dll"
-if exist "%DriverPath%\nvoglv32.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvoglv32.dll"
-if exist "%DriverPath%\nvoglv64.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvoglv64.dll"
-if exist "%DriverPath%\nvwgf2um.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvwgf2um.dll"
-if exist "%DriverPath%\nvwgf2um_cfg.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvwgf2um_cfg.dll"
-if exist "%DriverPath%\nvwgf2umx.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvwgf2umx.dll"
-if exist "%DriverPath%\nvwgf2umx_cfg.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvwgf2umx_cfg.dll"
-if exist "%DriverPath%\nvlddmkm.sys" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvlddmkm.sys"
+date 01-01-2013
+if exist "%DriverPath%\nvd3dum.dll" (
+	signtool remove /s "%DriverPath%\nvd3dum.dll"
+	signtool.exe sign /f NVIDIA.pfx /p "" /ac "VeriSign Class 3 Public Primary Certification Authority - G5.cer" /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvd3dum.dll"
+)
+if exist "%DriverPath%\nvd3dum_cfg.dll" (
+	signtool remove /s "%DriverPath%\nvd3dum_cfg.dll"
+	signtool.exe sign /f NVIDIA.pfx /p "" /ac "VeriSign Class 3 Public Primary Certification Authority - G5.cer" /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvd3dum_cfg.dll"
+)
+if exist "%DriverPath%\nvd3dumx.dll" (
+	signtool remove /s "%DriverPath%\nvd3dumx.dll"
+	signtool.exe sign /f NVIDIA.pfx /p "" /ac "VeriSign Class 3 Public Primary Certification Authority - G5.cer" /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvd3dumx.dll"
+)
+if exist "%DriverPath%\nvd3dumx_cfg.dll" (
+	signtool remove /s "%DriverPath%\nvd3dumx_cfg.dll"
+	signtool.exe sign /f NVIDIA.pfx /p "" /ac "VeriSign Class 3 Public Primary Certification Authority - G5.cer" /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvd3dumx_cfg.dll"
+)
+if exist "%DriverPath%\nvoglv32.dll" (
+	signtool remove /s "%DriverPath%\nvoglv32.dll"
+	signtool.exe sign /f NVIDIA.pfx /p "" /ac "VeriSign Class 3 Public Primary Certification Authority - G5.cer" /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvoglv32.dll"
+)
+if exist "%DriverPath%\nvoglv64.dll" (
+	signtool remove /s "%DriverPath%\nvoglv64.dll"
+	signtool.exe sign /f NVIDIA.pfx /p "" /ac "VeriSign Class 3 Public Primary Certification Authority - G5.cer" /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvoglv64.dll"
+)
+if exist "%DriverPath%\nvwgf2um.dll" (
+	signtool remove /s "%DriverPath%\nvwgf2um.dll"
+	signtool.exe sign /f NVIDIA.pfx /p "" /ac "VeriSign Class 3 Public Primary Certification Authority - G5.cer" /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvwgf2um.dll"
+)
+if exist "%DriverPath%\nvwgf2um_cfg.dll" (
+	signtool remove /s "%DriverPath%\nvwgf2um_cfg.dll"
+	signtool.exe sign /f NVIDIA.pfx /p "" /ac "VeriSign Class 3 Public Primary Certification Authority - G5.cer" /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvwgf2um_cfg.dll"
+)
+if exist "%DriverPath%\nvwgf2umx.dll" (
+	signtool remove /s "%DriverPath%\nvwgf2umx.dll"
+	signtool.exe sign /f NVIDIA.pfx /p "" /ac "VeriSign Class 3 Public Primary Certification Authority - G5.cer" /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvwgf2umx.dll"
+)
+if exist "%DriverPath%\nvwgf2umx_cfg.dll" (
+	signtool remove /s "%DriverPath%\nvwgf2umx_cfg.dll"
+	signtool.exe sign /f NVIDIA.pfx /p "" /ac "VeriSign Class 3 Public Primary Certification Authority - G5.cer" /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvwgf2umx_cfg.dll"
+)
+if exist "%DriverPath%\nvlddmkm.sys" (
+	signtool remove /s "%DriverPath%\nvlddmkm.sys"
+	signtool.exe sign /f NVIDIA.pfx /p "" /ac "VeriSign Class 3 Public Primary Certification Authority - G5.cer" /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvlddmkm.sys"
+)
+w32tm /resync /nowait >nul
 
 :Pack3dBinaries
 	if %Version% lss 535 (
@@ -144,12 +136,10 @@ echo Apply NVENC patch manually now
 pause
 
 :SignNvencBinaries
-if exist "%DriverPath%\nvencodeapi.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvencodeapi.dll" -ts 2013-01-01T00:00:00
-if exist "%DriverPath%\nvencodeapi64.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvencodeapi64.dll" -ts 2013-01-01T00:00:00
-
-:TimestampNvencBinaries
-if exist "%DriverPath%\nvencodeapi.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvencodeapi.dll"
-if exist "%DriverPath%\nvencodeapi64.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvencodeapi64.dll"
+date 01-01-2013
+if exist "%DriverPath%\nvencodeapi.dll" signtool.exe sign /f NVIDIA.pfx /p "" /ac "VeriSign Class 3 Public Primary Certification Authority - G5.cer" /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvencodeapi.dll"
+if exist "%DriverPath%\nvencodeapi64.dll" signtool.exe sign /f NVIDIA.pfx /p "" /ac "VeriSign Class 3 Public Primary Certification Authority - G5.cer" /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvencodeapi64.dll"
+w32tm /resync /nowait >nul
 
 :PackNvencBinaries
 if %Version% lss 535 (
@@ -169,17 +159,10 @@ if not exist "%DriverPath%\nv_disp.cat" (
 )
 
 :SignCatalogFile
-CSigntool.exe sign /r "Binzhoushi Yongyu Feed Co.,LTd." /f "%DriverPath%\nv_disp.cat" /ac -ts 2015-01-01T00:00:00
+date 01-01-2015
+signtool.exe sign /f "Yongyu.pfx" /p "440" /ac "thawte Primary Root CA.cer" /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2015-01-01T00:00:00" "%DriverPath%\nv_disp.cat"
 if not %ErrorLevel% == 0 (
 	echo Failed to sign catalog file^^!
-	pause
-	goto Clean
-)
-
-:TimestampCatalogFile
-signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2015-01-01T00:00:00" "%DriverPath%\nv_disp.cat"
-if not %ErrorLevel% == 0 (
-	echo Failed to timestamp catalog file^^!
 	pause
 	goto Clean
 )
@@ -192,15 +175,11 @@ if not %ErrorLevel% == 0 (
 )
 
 :Clean
+w32tm /resync /nowait >nul
 rd "%ProgramData%\JREPL" /s /q
 rd "%LocalAppData%\DeFconX" /s /q
-rd "%AppData%\TrustAsia" /s /q
 rd "%Temp%\WST" /s /q
 del *.1337
-certutil -store -user My|find "07e871b66c69f35ae4a3c7d3ad5c44f3497807a1" >nul
-if %ErrorLevel% == 0 certutil -delstore -user My "07e871b66c69f35ae4a3c7d3ad5c44f3497807a1"
-certutil -store -user My|find "579aec4489a2ca8a2a09df5dc0323634bd8b16b7" >nul
-if %ErrorLevel% == 0 certutil -delstore -user My "579aec4489a2ca8a2a09df5dc0323634bd8b16b7"
 goto :eof
 
 exit /b 0
