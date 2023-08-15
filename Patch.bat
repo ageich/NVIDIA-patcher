@@ -35,11 +35,11 @@ reg add HKLM\SOFTWARE\Microsoft\SystemCertificates\ROOT\Certificates\E403A1DFC8F
 :UnpackDriverFiles
 if %Version% lss 535 (
 	title Unpacking driver...
-	7za.exe e "%DriverPath%\*.bi_" -o"%DriverPath%"
-	7za.exe e "%DriverPath%\*.dl_" -o"%DriverPath%"
-	7za.exe e "%DriverPath%\*.ex_" -o"%DriverPath%"
-	7za.exe e "%DriverPath%\*.ic_" -o"%DriverPath%"
-	7za.exe e "%DriverPath%\*.sy_" -o"%DriverPath%"
+	7z.exe e "%DriverPath%\*.bi_" -o"%DriverPath%"
+	7z.exe e "%DriverPath%\*.dl_" -o"%DriverPath%"
+	7z.exe e "%DriverPath%\*.ex_" -o"%DriverPath%"
+	7z.exe e "%DriverPath%\*.ic_" -o"%DriverPath%"
+	7z.exe e "%DriverPath%\*.sy_" -o"%DriverPath%"
 )
 
 :Patch3dAcceleration
