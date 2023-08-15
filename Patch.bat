@@ -1,197 +1,200 @@
 @echo off
+@setlocal EnableExtensions EnableDelayedExpansion
 
+:CheckAdminRights
 net session >nul 2>&1
-IF %ERRORLEVEL% neq 0 (
-	echo Please run as administator!
+if not %ErrorLevel% == 0 (
+	echo Please run as administator^^!
 	pause
-	exit
+	exit /b 1
 )
 
-@setlocal enableextensions enabledelayedexpansion
-@cd /d "%~DP0"
+@cd /d "%~dp0"
 
-set /P VERSION=Enter driver version:
-if not defined VERSION set VERSION=0.0
-set DRIVER=%CD%\Display.Driver
-set BIN_PATTERN=\xC2\x15\x07\x00\x07\x1B\x07\x00\x87\x1B\x07\x00\xC7\x1B\x07\x00\x07\x1C\x07\x00\x09\x1C\x07\x00\x83\x1D\x07\x00\x84\x1D\x07\x00\xC1\x1D\x07\x00\x09\x1E\x07\x00\x49\x1E\x07\x00\xBC\x1E\x07\x00\xFC\x1E\x07\x00\x0B\x1F\x07\x00\x81\x20\x07\x00\x82\x20\x07\x00\x83\x20\x07\x00\xC2\x20\x07\x00\x89\x21\x07\x00\x0D\x22\x07\x00\x4D\x22\x07\x00\x8A\x24\x07\x00\xCA\x24\x07\x00\x0A\x25\x07\x00
-set BIN_PATCH=\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00
-set BIN_PATTERN_SLI=\x84\xC0\x75\x05\x0F\xBA\x6B
-set BIN_PATCH_SLI=\xC7\x43\x24\x00\x00\x00\x00
-set NVENC32_PATCH_URL=https://raw.githubusercontent.com/keylase/nvidia-patch/master/win/win10_x64/%VERSION%/nvencodeapi.1337
-set NVENC64_PATCH_URL=https://raw.githubusercontent.com/keylase/nvidia-patch/master/win/win10_x64/%VERSION%/nvencodeapi64.1337
+:SetVariables
+set /p "Version=Enter driver version:"
+if not defined Version set "Version=0.0"
+set "DriverPath=%CD%\Display.Driver"
+set "Nvenc32PatchUrl=https://raw.githubusercontent.com/keylase/nvidia-patch/master/win/win10_x64/%Version%/nvencodeapi.1337"
+set "Nvenc64PatchUrl=https://raw.githubusercontent.com/keylase/nvidia-patch/master/win/win10_x64/%Version%/nvencodeapi64.1337"
+set "Pattern=\xC2\x15\x07\x00\x07\x1B\x07\x00\x87\x1B\x07\x00\xC7\x1B\x07\x00\x07\x1C\x07\x00\x09\x1C\x07\x00\x83\x1D\x07\x00\x84\x1D\x07\x00\xC1\x1D\x07\x00\x09\x1E\x07\x00\x49\x1E\x07\x00\xBC\x1E\x07\x00\xFC\x1E\x07\x00\x0B\x1F\x07\x00\x81\x20\x07\x00\x82\x20\x07\x00\x83\x20\x07\x00\xC2\x20\x07\x00\x89\x21\x07\x00\x0D\x22\x07\x00\x4D\x22\x07\x00\x8A\x24\x07\x00\xCA\x24\x07\x00\x0A\x25\x07\x00"
+set "Patch=\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00"
+set "PatternSli=\x84\xC0\x75\x05\x0F\xBA\x6B"
+set "PatchSli=\xC7\x43\x24\x00\x00\x00\x00"
 
-if not exist "%DRIVER%" (
-	echo %DRIVER% not found^^! Unpack driver distributive and place unpacked files next to Patch.bat
+:CheckDriverPresence
+if not exist "%DriverPath%" (
+	echo %DriverPath% not found^^! Unpack driver distributive and place unpacked files next to Patch.bat
 	pause
-	exit
+	exit /b 1
 )
 
-if exist "%APPDATA%\TrustAsia\DSignTool" (
-	rd "%APPDATA%\TrustAsia\DSignTool" /s /q || echo Failed to delete old CSignTool/DSignTool config^^! Make sure you have write access to the %APPDATA%\TrustAsia\DSignTool directory. && pause && exit
-)
-
+:ImportCustomSigningCertificate
 certutil -store -user My|find "07e871b66c69f35ae4a3c7d3ad5c44f3497807a1" >nul
-if not !ERRORLEVEL!==0 (
-	certutil -f -user -p "440" -importpfx Yongyu.pfx NoRoot
-		if not !ERRORLEVEL!==0 (
+if not %ErrorLevel% == 0 (
+	certutil -f -user -p "440" -importpfx "Yongyu.pfx" NoRoot
+		if not !ErrorLevel! == 0 (
 			echo Failed to install Binzhoushi Yongyu Feed Co.,LTd. code signing certificate^^!
 			pause
-			exit
+			exit /b 1
 		)
 )
 
+:ImportNvidiaSigningCertificate
 certutil -store -user My|find "579aec4489a2ca8a2a09df5dc0323634bd8b16b7" >nul
-if not !ERRORLEVEL!==0 (
+if not %ErrorLevel% == 0 (
 	certutil -f -user -p "" -importpfx NVIDIA.pfx NoRoot
-		if not !ERRORLEVEL!==0 (
+		if not !ErrorLevel! == 0 (
 			echo Failed to install NVIDIA Corporation code signing certificate^^!
 			pause
-			exit
+			goto Clean
+			exit /b 1
 		)
 )
 
-md "%APPDATA%\TrustAsia\DSignTool"
+:RemoveDsigntoolConfig
+if exist "%AppData%\TrustAsia\DSignTool" rd "%AppData%\TrustAsia\DSignTool" /s /q || echo Failed to delete old CSigntool/DSignTool config^^! Make sure you have write access to the %AppData%\TrustAsia\DSignTool directory. && pause && goto Clean && exit /b 1
 
-echo ^<CONFIG FileExts="*.exe;*.dll;*.ocx;*.sys;*.cat;*.cab;*.msi;*.mui;*.bin;" UUID="{04E99765-8F33-4A9F-9393-35F83CC50E74}"^>^<RULES^>^<RULE Name="Binzhoushi Yongyu Feed Co.,LTd." Cert="07e871b66c69f35ae4a3c7d3ad5c44f3497807a1" Sha2Cert="" Desc="" InfoUrl="" Timestamp="" FileExts="*.exe;*.dll;*.ocx;*.sys;*.cat;*.cab;*.msi;*.mui;*.bin;" EnumSubDir="0" SkipSigned="0" Time="2012-01-31 12:00:25"/^>^<RULE Name="NVIDIA Corporation" Cert="579aec4489a2ca8a2a09df5dc0323634bd8b16b7" Sha2Cert="" Desc="" InfoUrl="" Timestamp="" FileExts="*.exe;*.dll;*.ocx;*.sys;*.cat;*.cab;*.msi;*.mui;*.bin;" EnumSubDir="0" SkipSigned="0" Time="2012-01-31 12:00:25"/^>^</RULES^>^</CONFIG^>>>"%APPDATA%\TrustAsia\DSignTool\Config.xml"
+:CreateDsigntoolConfig
+md "%AppData%\TrustAsia\DSignTool"
+echo ^<CONFIG FileExts="*.exe;*.dll;*.ocx;*.sys;*.cat;*.cab;*.msi;*.mui;*.bin;" UUID="{04E99765-8F33-4A9F-9393-35F83CC50E74}"^>^<RULES^>^<RULE Name="Binzhoushi Yongyu Feed Co.,LTd." Cert="07e871b66c69f35ae4a3c7d3ad5c44f3497807a1" Sha2Cert="" Desc="" InfoUrl="" Timestamp="" FileExts="*.exe;*.dll;*.ocx;*.sys;*.cat;*.cab;*.msi;*.mui;*.bin;" EnumSubDir="0" SkipSigned="0" Time="2012-01-31 12:00:25"/^>^<RULE Name="NVIDIA Corporation" Cert="579aec4489a2ca8a2a09df5dc0323634bd8b16b7" Sha2Cert="" Desc="" InfoUrl="" Timestamp="" FileExts="*.exe;*.dll;*.ocx;*.sys;*.cat;*.cab;*.msi;*.mui;*.bin;" EnumSubDir="0" SkipSigned="0" Time="2012-01-31 12:00:25"/^>^</RULES^>^</CONFIG^>>>"%AppData%\TrustAsia\DSignTool\Config.xml"
 
-7za e "%DRIVER%\*.bi_" -o"%DRIVER%"
-7za e "%DRIVER%\*.dl_" -o"%DRIVER%"
-7za e "%DRIVER%\*.ex_" -o"%DRIVER%"
-7za e "%DRIVER%\*.ic_" -o"%DRIVER%"
-7za e "%DRIVER%\*.sy_" -o"%DRIVER%"
+:UnpackDriverFiles
+7za.exe e "%DriverPath%\*.bi_" -o"%DriverPath%"
+7za.exe e "%DriverPath%\*.dl_" -o"%DriverPath%"
+7za.exe e "%DriverPath%\*.ex_" -o"%DriverPath%"
+7za.exe e "%DriverPath%\*.ic_" -o"%DriverPath%"
+7za.exe e "%DriverPath%\*.sy_" -o"%DriverPath%"
 
-if exist "%DRIVER%\nvd3dum.dll" call jrepl.bat "%BIN_PATTERN%" "%BIN_PATCH%" /m /x /f "%DRIVER%\nvd3dum.dll" /o -
-if exist "%DRIVER%\nvd3dum_cfg.dll" call jrepl.bat "%BIN_PATTERN%" "%BIN_PATCH%" /m /x /f "%DRIVER%\nvd3dum_cfg.dll" /o -
-if exist "%DRIVER%\nvd3dumx.dll" call jrepl.bat "%BIN_PATTERN%" "%BIN_PATCH%" /m /x /f "%DRIVER%\nvd3dumx.dll" /o -
-if exist "%DRIVER%\nvd3dumx_cfg.dll" call jrepl.bat "%BIN_PATTERN%" "%BIN_PATCH%" /m /x /f "%DRIVER%\nvd3dumx_cfg.dll" /o -
-if exist "%DRIVER%\nvoglv32.dll" call jrepl.bat "%BIN_PATTERN%" "%BIN_PATCH%" /m /x /f "%DRIVER%\nvoglv32.dll" /o -
-if exist "%DRIVER%\nvoglv64.dll" call jrepl.bat "%BIN_PATTERN%" "%BIN_PATCH%" /m /x /f "%DRIVER%\nvoglv64.dll" /o -
-if exist "%DRIVER%\nvwgf2um.dll" call jrepl.bat "%BIN_PATTERN%" "%BIN_PATCH%" /m /x /f "%DRIVER%\nvwgf2um.dll" /o -
-if exist "%DRIVER%\nvwgf2um_cfg.dll" call jrepl.bat "%BIN_PATTERN%" "%BIN_PATCH%" /m /x /f "%DRIVER%\nvwgf2um_cfg.dll" /o -
-if exist "%DRIVER%\nvwgf2umx.dll" call jrepl.bat "%BIN_PATTERN%" "%BIN_PATCH%" /m /x /f "%DRIVER%\nvwgf2umx.dll" /o -
-if exist "%DRIVER%\nvwgf2umx_cfg.dll" call jrepl.bat "%BIN_PATTERN%" "%BIN_PATCH%" /m /x /f "%DRIVER%\nvwgf2umx_cfg.dll" /o -
-if exist "%DRIVER%\nvlddmkm.sys" call jrepl.bat "%BIN_PATTERN%" "%BIN_PATCH%" /m /x /f "%DRIVER%\nvlddmkm.sys" /o -
+:Patch3dAcceleration
+if exist "%DriverPath%\nvd3dum.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvd3dum.dll" /o -
+if exist "%DriverPath%\nvd3dum_cfg.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvd3dum_cfg.dll" /o -
+if exist "%DriverPath%\nvd3dumx.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvd3dumx.dll" /o -
+if exist "%DriverPath%\nvd3dumx_cfg.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvd3dumx_cfg.dll" /o -
+if exist "%DriverPath%\nvoglv32.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvoglv32.dll" /o -
+if exist "%DriverPath%\nvoglv64.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvoglv64.dll" /o -
+if exist "%DriverPath%\nvwgf2um.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvwgf2um.dll" /o -
+if exist "%DriverPath%\nvwgf2um_cfg.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvwgf2um_cfg.dll" /o -
+if exist "%DriverPath%\nvwgf2umx.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvwgf2umx.dll" /o -
+if exist "%DriverPath%\nvwgf2umx_cfg.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvwgf2umx_cfg.dll" /o -
+if exist "%DriverPath%\nvlddmkm.sys" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvlddmkm.sys" /o -
 
-if %VERSION%==446.14 call jrepl.bat "%BIN_PATTERN_SLI%" "%BIN_PATCH_SLI%" /m /x /f "%DRIVER%\nvlddmkm.sys" /o -
+:PatchSliSupport
+if %Version% == 446.14 call JREPL.bat "%PatternSli%" "%PatchSli%" /m /x /f "%DriverPath%\nvlddmkm.sys" /o -
 
-if exist "%DRIVER%\nvd3dum.dll" CSignTool sign /r "NVIDIA Corporation" /f "%DRIVER%\nvd3dum.dll" -ts 2013-01-01T00:00:00
-if exist "%DRIVER%\nvd3dum_cfg.dll" CSignTool sign /r "NVIDIA Corporation" /f "%DRIVER%\nvd3dum_cfg.dll" -ts 2013-01-01T00:00:00
-if exist "%DRIVER%\nvd3dumx.dll" CSignTool sign /r "NVIDIA Corporation" /f "%DRIVER%\nvd3dumx.dll" -ts 2013-01-01T00:00:00
-if exist "%DRIVER%\nvd3dumx_cfg.dll" CSignTool sign /r "NVIDIA Corporation" /f "%DRIVER%\nvd3dumx_cfg.dll" -ts 2013-01-01T00:00:00
-if exist "%DRIVER%\nvoglv32.dll" CSignTool sign /r "NVIDIA Corporation" /f "%DRIVER%\nvoglv32.dll" -ts 2013-01-01T00:00:00
-if exist "%DRIVER%\nvoglv64.dll" CSignTool sign /r "NVIDIA Corporation" /f "%DRIVER%\nvoglv64.dll" -ts 2013-01-01T00:00:00
-if exist "%DRIVER%\nvwgf2um.dll" CSignTool sign /r "NVIDIA Corporation" /f "%DRIVER%\nvwgf2um.dll" -ts 2013-01-01T00:00:00
-if exist "%DRIVER%\nvwgf2um_cfg.dll" CSignTool sign /r "NVIDIA Corporation" /f "%DRIVER%\nvwgf2um_cfg.dll" -ts 2013-01-01T00:00:00
-if exist "%DRIVER%\nvwgf2umx.dll" CSignTool sign /r "NVIDIA Corporation" /f "%DRIVER%\nvwgf2umx.dll" -ts 2013-01-01T00:00:00
-if exist "%DRIVER%\nvwgf2umx_cfg.dll" CSignTool sign /r "NVIDIA Corporation" /f "%DRIVER%\nvwgf2umx_cfg.dll" -ts 2013-01-01T00:00:00
+:Sign3dBinaries
+if exist "%DriverPath%\nvd3dum.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvd3dum.dll" -ts 2013-01-01T00:00:00
+if exist "%DriverPath%\nvd3dum_cfg.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvd3dum_cfg.dll" -ts 2013-01-01T00:00:00
+if exist "%DriverPath%\nvd3dumx.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvd3dumx.dll" -ts 2013-01-01T00:00:00
+if exist "%DriverPath%\nvd3dumx_cfg.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvd3dumx_cfg.dll" -ts 2013-01-01T00:00:00
+if exist "%DriverPath%\nvoglv32.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvoglv32.dll" -ts 2013-01-01T00:00:00
+if exist "%DriverPath%\nvoglv64.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvoglv64.dll" -ts 2013-01-01T00:00:00
+if exist "%DriverPath%\nvwgf2um.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvwgf2um.dll" -ts 2013-01-01T00:00:00
+if exist "%DriverPath%\nvwgf2um_cfg.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvwgf2um_cfg.dll" -ts 2013-01-01T00:00:00
+if exist "%DriverPath%\nvwgf2umx.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvwgf2umx.dll" -ts 2013-01-01T00:00:00
+if exist "%DriverPath%\nvwgf2umx_cfg.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvwgf2umx_cfg.dll" -ts 2013-01-01T00:00:00
+if exist "%DriverPath%\nvlddmkm.sys" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvlddmkm.sys" -ts 2013-01-01T00:00:00
 
-if exist "%DRIVER%\nvd3dum.dll" signtool timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DRIVER%\nvd3dum.dll"
-if exist "%DRIVER%\nvd3dum_cfg.dll" signtool timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DRIVER%\nvd3dum_cfg.dll"
-if exist "%DRIVER%\nvd3dumx.dll" signtool timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DRIVER%\nvd3dumx.dll"
-if exist "%DRIVER%\nvd3dumx_cfg.dll" signtool timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DRIVER%\nvd3dumx_cfg.dll"
-if exist "%DRIVER%\nvoglv32.dll" signtool timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DRIVER%\nvoglv32.dll"
-if exist "%DRIVER%\nvoglv64.dll" signtool timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DRIVER%\nvoglv64.dll"
-if exist "%DRIVER%\nvwgf2um.dll" signtool timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DRIVER%\nvwgf2um.dll"
-if exist "%DRIVER%\nvwgf2um_cfg.dll" signtool timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DRIVER%\nvwgf2um_cfg.dll"
-if exist "%DRIVER%\nvwgf2umx.dll" signtool timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DRIVER%\nvwgf2umx.dll"
-if exist "%DRIVER%\nvwgf2umx_cfg.dll" signtool timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DRIVER%\nvwgf2umx_cfg.dll"
+:Timestamp3dBinaries
+if exist "%DriverPath%\nvd3dum.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvd3dum.dll"
+if exist "%DriverPath%\nvd3dum_cfg.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvd3dum_cfg.dll"
+if exist "%DriverPath%\nvd3dumx.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvd3dumx.dll"
+if exist "%DriverPath%\nvd3dumx_cfg.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvd3dumx_cfg.dll"
+if exist "%DriverPath%\nvoglv32.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvoglv32.dll"
+if exist "%DriverPath%\nvoglv64.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvoglv64.dll"
+if exist "%DriverPath%\nvwgf2um.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvwgf2um.dll"
+if exist "%DriverPath%\nvwgf2um_cfg.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvwgf2um_cfg.dll"
+if exist "%DriverPath%\nvwgf2umx.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvwgf2umx.dll"
+if exist "%DriverPath%\nvwgf2umx_cfg.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvwgf2umx_cfg.dll"
+if exist "%DriverPath%\nvlddmkm.sys" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvlddmkm.sys"
 
-if exist "%DRIVER%\nvd3dum.dll" makecab "%DRIVER%\nvd3dum.dll" /L "%DRIVER%"
-if exist "%DRIVER%\nvd3dum_cfg.dll" makecab "%DRIVER%\nvd3dum_cfg.dll" /L "%DRIVER%"
-if exist "%DRIVER%\nvd3dumx.dll" makecab "%DRIVER%\nvd3dumx.dll" /L "%DRIVER%"
-if exist "%DRIVER%\nvd3dumx_cfg.dll" makecab "%DRIVER%\nvd3dumx_cfg.dll" /L "%DRIVER%"
-if exist "%DRIVER%\nvoglv32.dll" makecab "%DRIVER%\nvoglv32.dll" /L "%DRIVER%"
-if exist "%DRIVER%\nvoglv64.dll" makecab "%DRIVER%\nvoglv64.dll" /L "%DRIVER%"
-if exist "%DRIVER%\nvwgf2um.dll" makecab "%DRIVER%\nvwgf2um.dll" /L "%DRIVER%"
-if exist "%DRIVER%\nvwgf2um_cfg.dll" makecab "%DRIVER%\nvwgf2um.dll" /L "%DRIVER%"
-if exist "%DRIVER%\nvwgf2umx.dll" makecab "%DRIVER%\nvwgf2umx.dll" /L "%DRIVER%"
-if exist "%DRIVER%\nvwgf2umx_cfg.dll" makecab "%DRIVER%\nvwgf2umx_cfg.dll" /L "%DRIVER%"
-if exist "%DRIVER%\nvlddmkm.sys" makecab "%DRIVER%\nvlddmkm.sys" /L "%DRIVER%"
+:Pack3dBinaries
+if exist "%DriverPath%\nvd3dum.dll" makecab "%DriverPath%\nvd3dum.dll" /l "%DriverPath%"
+if exist "%DriverPath%\nvd3dum_cfg.dll" makecab "%DriverPath%\nvd3dum_cfg.dll" /l "%DriverPath%"
+if exist "%DriverPath%\nvd3dumx.dll" makecab "%DriverPath%\nvd3dumx.dll" /l "%DriverPath%"
+if exist "%DriverPath%\nvd3dumx_cfg.dll" makecab "%DriverPath%\nvd3dumx_cfg.dll" /l "%DriverPath%"
+if exist "%DriverPath%\nvoglv32.dll" makecab "%DriverPath%\nvoglv32.dll" /l "%DriverPath%"
+if exist "%DriverPath%\nvoglv64.dll" makecab "%DriverPath%\nvoglv64.dll" /l "%DriverPath%"
+if exist "%DriverPath%\nvwgf2um.dll" makecab "%DriverPath%\nvwgf2um.dll" /l "%DriverPath%"
+if exist "%DriverPath%\nvwgf2um_cfg.dll" makecab "%DriverPath%\nvwgf2um.dll" /l "%DriverPath%"
+if exist "%DriverPath%\nvwgf2umx.dll" makecab "%DriverPath%\nvwgf2umx.dll" /l "%DriverPath%"
+if exist "%DriverPath%\nvwgf2umx_cfg.dll" makecab "%DriverPath%\nvwgf2umx_cfg.dll" /l "%DriverPath%"
+if exist "%DriverPath%\nvlddmkm.sys" makecab "%DriverPath%\nvlddmkm.sys" /l "%DriverPath%"
 
-set HTTP=
-for /f %%a in ( 'curl -o NUL -s -Iw "%%{http_code}" "%NVENC64_PATCH_URL%"' ) do set HTTP=%%a
-if "%HTTP%" neq "200" (
-	goto :NONVENC
-)
+:CheckNvencPatchPresence
+for /f %%a in ( 'curl -o nul -s -Iw "%%{http_code}" "%Nvenc64PatchUrl%"' ) do set http=%%a
+if not %http% == 200 goto GenerateCatalogFile
 
-cls
-CHOICE /M "Do you want to apply NVENC patch? This may enable NVENC support on some cards."
-IF %ERRORLEVEL% equ 1 GOTO NVENC
-IF %ERRORLEVEL% equ 2 GOTO NONVENC
+:AskUserAboutNvenc
+echo.
+choice /m "Do you want to apply NVENC patch? This may enable NVENC support on some cards"
+if %ErrorLevel% == 1 goto DownloadNvencPatches
+if %ErrorLevel% == 2 goto GenerateCatalogFile
 
-:NVENC
-curl -s -O %NVENC32_PATCH_URL%
-curl -s -O %NVENC64_PATCH_URL%
+:DownloadNvencPatches
+curl -s -O %Nvenc32PatchUrl%
+curl -s -O %Nvenc64PatchUrl%
 
+:PromptUserAboutNvenc
 echo Apply NVENC patch manually now
 pause
 
-if exist "%DRIVER%\nvencodeapi.dll" CSignTool sign /r "NVIDIA Corporation" /f "%DRIVER%\nvencodeapi.dll" -ts 2013-01-01T00:00:00
-if exist "%DRIVER%\nvencodeapi64.dll" CSignTool sign /r "NVIDIA Corporation" /f "%DRIVER%\nvencodeapi64.dll" -ts 2013-01-01T00:00:00
+:SignNvencBinaries
+if exist "%DriverPath%\nvencodeapi.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvencodeapi.dll" -ts 2013-01-01T00:00:00
+if exist "%DriverPath%\nvencodeapi64.dll" CSigntool.exe sign /r "NVIDIA Corporation" /f "%DriverPath%\nvencodeapi64.dll" -ts 2013-01-01T00:00:00
 
-if exist "%DRIVER%\nvencodeapi.dll" signtool timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DRIVER%\nvencodeapi.dll"
-if exist "%DRIVER%\nvencodeapi64.dll" signtool timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DRIVER%\nvencodeapi64.dll"
+:TimestampNvencBinaries
+if exist "%DriverPath%\nvencodeapi.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvencodeapi.dll"
+if exist "%DriverPath%\nvencodeapi64.dll" signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2013-01-01T00:00:00" "%DriverPath%\nvencodeapi64.dll"
 
-if exist "%DRIVER%\nvencodeapi.dll" makecab "%DRIVER%\nvencodeapi.dll" /L "%DRIVER%"
-if exist "%DRIVER%\nvencodeapi64.dll" makecab "%DRIVER%\nvencodeapi64.dll" /L "%DRIVER%"
+:PackNvencBinaries
+if exist "%DriverPath%\nvencodeapi.dll" makecab "%DriverPath%\nvencodeapi.dll" /l "%DriverPath%"
+if exist "%DriverPath%\nvencodeapi64.dll" makecab "%DriverPath%\nvencodeapi64.dll" /l "%DriverPath%"
 
-:NONVENC
-del "%DRIVER%\nv_disp.cat"
+:GenerateCatalogFile
+del "%DriverPath%\nv_disp.cat"
+Inf2Cat.exe /driver:"%DriverPath%" /os:10_x64
 
-inf2cat /driver:"%DRIVER%" /os:10_X64
-
-if not exist "%DRIVER%\nv_disp.cat" (
+:CheckCatalogFile
+if not exist "%DriverPath%\nv_disp.cat" (
 	echo Failed to generate catalog file^^!
-	goto CLEAN
+	pause
+	goto Clean
 )
 
-CSignTool sign /r "Binzhoushi Yongyu Feed Co.,LTd." /f "%DRIVER%\nv_disp.cat" /ac -ts 2015-01-01T00:00:00
-if not %ERRORLEVEL%==0 (
+:SignCatalogFile
+CSigntool.exe sign /r "Binzhoushi Yongyu Feed Co.,LTd." /f "%DriverPath%\nv_disp.cat" /ac -ts 2015-01-01T00:00:00
+if not %ErrorLevel% == 0 (
 	echo Failed to sign catalog file^^!
 	pause
-	goto CLEAN
+	goto Clean
 )
 
-signtool timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2015-01-01T00:00:00" "%DRIVER%\nv_disp.cat"
-if not %ERRORLEVEL%==0 (
+:TimestampCatalogFile
+signtool.exe timestamp /t "http://tsa.pki.jemmylovejenny.tk/SHA1/2015-01-01T00:00:00" "%DriverPath%\nv_disp.cat"
+if not %ErrorLevel% == 0 (
 	echo Failed to timestamp catalog file^^!
 	pause
-	goto CLEAN
+	goto Clean
 )
 
+:InstallTimestampCertificate
 certutil -store Root|find "e403a1dfc8f377e0f4aa43a83ee9ea079a1f55f2" >nul
-if not !ERRORLEVEL!==0 (
+if not %ErrorLevel% == 0 (
 	certutil -f -addstore Root EVRootCA.crt
-		if not !ERRORLEVEL!==0 (
-			echo Failed to install root certificate^^! Download it from pki.jemmylovejenny.tk and install manually into Trusted Root Certification Authorities.
-		)
+		if not !ErrorLevel! == 0 echo Failed to install root certificate^^! Download it from pki.jemmylovejenny.tk and install manually into Trusted Root Certification Authorities.
 )
 
-:CLEAN
-rd "%PROGRAMDATA%\JREPL" /s /q
-rd "%LOCALAPPDATA%\DeFconX" /s /q
-rd "%APPDATA%\TrustAsia" /s /q
-rd "%TEMP%\WST" /s /q
+:Clean
+rd "%ProgramData%\JREPL" /s /q
+rd "%LocalAppData%\DeFconX" /s /q
+rd "%AppData%\TrustAsia" /s /q
+rd "%Temp%\WST" /s /q
 del *.1337
-
 certutil -store -user My|find "07e871b66c69f35ae4a3c7d3ad5c44f3497807a1" >nul
-if !ERRORLEVEL!==0 (
-	certutil -delstore -user My "07e871b66c69f35ae4a3c7d3ad5c44f3497807a1"
-		if not !ERRORLEVEL!==0 (
-			echo Failed to uninstall Binzhoushi Yongyu Feed Co.,LTd. code signing certificate^^!
-			pause
-			exit
-		)
-)
-
+if %ErrorLevel% == 0 certutil -delstore -user My "07e871b66c69f35ae4a3c7d3ad5c44f3497807a1"
 certutil -store -user My|find "579aec4489a2ca8a2a09df5dc0323634bd8b16b7" >nul
-if !ERRORLEVEL!==0 (
-	certutil -delstore -user My "579aec4489a2ca8a2a09df5dc0323634bd8b16b7"
-		if not !ERRORLEVEL!==0 (
-			echo Failed to uninstall NVIDIA Corporation code signing certificate^^!
-			pause
-			exit
-		)
-)
+if %ErrorLevel% == 0 certutil -delstore -user My "579aec4489a2ca8a2a09df5dc0323634bd8b16b7"
+goto :eof
 
-exit
+exit /b 0
