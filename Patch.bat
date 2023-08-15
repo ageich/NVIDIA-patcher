@@ -72,10 +72,7 @@ if exist "%DRIVER%\nvwgf2umx.dll" call jrepl.bat "%BIN_PATTERN%" "%BIN_PATCH%" /
 if exist "%DRIVER%\nvwgf2umx_cfg.dll" call jrepl.bat "%BIN_PATTERN%" "%BIN_PATCH%" /m /x /f "%DRIVER%\nvwgf2umx_cfg.dll" /o -
 if exist "%DRIVER%\nvlddmkm.sys" call jrepl.bat "%BIN_PATTERN%" "%BIN_PATCH%" /m /x /f "%DRIVER%\nvlddmkm.sys" /o -
 
-findstr /m "446.14" "%DRIVER%\DisplayDriver.nvi"
-if %ERRORLEVEL%==0 (
-	if exist "%DRIVER%\nvlddmkm.sys" call jrepl.bat "%BIN_PATTERN_SLI%" "%BIN_PATCH_SLI%" /m /x /f "%DRIVER%\nvlddmkm.sys" /o -
-)
+if %VERSION%==446.14 call jrepl.bat "%BIN_PATTERN_SLI%" "%BIN_PATCH_SLI%" /m /x /f "%DRIVER%\nvlddmkm.sys" /o -
 
 if exist "%DRIVER%\nvd3dum.dll" CSignTool sign /r "NVIDIA Corporation" /f "%DRIVER%\nvd3dum.dll" -ts 2013-01-01T00:00:00
 if exist "%DRIVER%\nvd3dum_cfg.dll" CSignTool sign /r "NVIDIA Corporation" /f "%DRIVER%\nvd3dum_cfg.dll" -ts 2013-01-01T00:00:00
