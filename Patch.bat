@@ -17,8 +17,12 @@ if not defined Version set "Version=0.0"
 set "DriverPath=%CD%\Display.Driver"
 set "Nvenc32PatchUrl=https://raw.githubusercontent.com/keylase/nvidia-patch/master/win/win10_x64/%Version%/nvencodeapi.1337"
 set "Nvenc64PatchUrl=https://raw.githubusercontent.com/keylase/nvidia-patch/master/win/win10_x64/%Version%/nvencodeapi64.1337"
-set "Pattern=\xC2\x15\x07\x00\x07\x1B\x07\x00\x87\x1B\x07\x00\xC7\x1B\x07\x00\x07\x1C\x07\x00\x09\x1C\x07\x00\x83\x1D\x07\x00\x84\x1D\x07\x00\xC1\x1D\x07\x00\x09\x1E\x07\x00\x49\x1E\x07\x00\xBC\x1E\x07\x00\xFC\x1E\x07\x00\x0B\x1F\x07\x00\x81\x20\x07\x00\x82\x20\x07\x00\x83\x20\x07\x00\xC2\x20\x07\x00\x89\x21\x07\x00\x0D\x22\x07\x00\x4D\x22\x07\x00\x8A\x24\x07\x00\xCA\x24\x07\x00\x0A\x25\x07\x00"
-set "Patch=\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00"
+set "NewPatternP=\x07\x1B\x07\x00\x87\x1B\x07\x00\xC7\x1B\x07\x00\x07\x1C\x07\x00\x09\x1C\x07"
+set "NewPatchP=\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07"
+set "OldPatternP=\x07\x1B\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x07\x00\x00\x00\x87\x1B\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x07\x00\x00\x00\xC7\x1B\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x07\x00\x00\x00\x07\x1C\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x07\x00\x00\x00\x09\x1C"
+set "OldPatchP=\xFF\xFF\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x07\x00\x00\x00\xFF\xFF\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x07\x00\x00\x00\xFF\xFF\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x07\x00\x00\x00\xFF\xFF\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x07\x00\x00\x00\xFF\xFF"
+set "PatternCmp=\x09\x1E\x07\x00\x49\x1E\x07\x00\xBC\x1E\x07\x00\xFC\x1E\x07\x00\x0B\x1F\x07\x00\x81\x20\x07\x00\x82\x20\x07\x00\x83\x20\x07\x00\xC2\x20\x07\x00\x89\x21\x07\x00\x0D\x22\x07\x00\x4D\x22\x07\x00\x8A\x24\x07"
+set "PatchCmp=\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07\x00\xFF\xFF\x07"
 set "PatternSli=\x84\xC0\x75\x05\x0F\xBA\x6B"
 set "PatchSli=\xC7\x43\x24\x00\x00\x00\x00"
 
@@ -44,23 +48,47 @@ if %Version% lss 535 (
 
 :Patch3dAcceleration
 title Patching 3D acceleration support...
-if exist "%DriverPath%\nvd3dum.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvd3dum.dll" /o -
-if exist "%DriverPath%\nvd3dum_cfg.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvd3dum_cfg.dll" /o -
-if exist "%DriverPath%\nvd3dumx.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvd3dumx.dll" /o -
-if exist "%DriverPath%\nvd3dumx_cfg.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvd3dumx_cfg.dll" /o -
-if exist "%DriverPath%\nvoglv32.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvoglv32.dll" /o -
-if exist "%DriverPath%\nvoglv64.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvoglv64.dll" /o -
-if exist "%DriverPath%\nvwgf2um.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvwgf2um.dll" /o -
-if exist "%DriverPath%\nvwgf2um_cfg.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvwgf2um_cfg.dll" /o -
-if exist "%DriverPath%\nvwgf2umx.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvwgf2umx.dll" /o -
-if exist "%DriverPath%\nvwgf2umx_cfg.dll" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvwgf2umx_cfg.dll" /o -
-if exist "%DriverPath%\nvlddmkm.sys" call JREPL.bat "%Pattern%" "%Patch%" /m /x /f "%DriverPath%\nvlddmkm.sys" /o -
 
-:PatchSliSupport
 if %Version% == 446.14 (
+	call JREPL.bat "%OldPatternP%" "%OldPatchP%" /m /x /f "%DriverPath%\nvd3dum.dll" /o -
+	call JREPL.bat "%OldPatternP%" "%OldPatchP%" /m /x /f "%DriverPath%\nvd3dum_cfg.dll" /o -
+	call JREPL.bat "%OldPatternP%" "%OldPatchP%" /m /x /f "%DriverPath%\nvd3dumx.dll" /o -
+	call JREPL.bat "%OldPatternP%" "%OldPatchP%" /m /x /f "%DriverPath%\nvd3dumx_cfg.dll" /o -
+	call JREPL.bat "%OldPatternP%" "%OldPatchP%" /m /x /f "%DriverPath%\nvoglv32.dll" /o -
+	call JREPL.bat "%OldPatternP%" "%OldPatchP%" /m /x /f "%DriverPath%\nvoglv64.dll" /o -
+	call JREPL.bat "%OldPatternP%" "%OldPatchP%" /m /x /f "%DriverPath%\nvwgf2um.dll" /o -
+	call JREPL.bat "%OldPatternP%" "%OldPatchP%" /m /x /f "%DriverPath%\nvwgf2um_cfg.dll" /o -
+	call JREPL.bat "%OldPatternP%" "%OldPatchP%" /m /x /f "%DriverPath%\nvwgf2umx.dll" /o -
+	call JREPL.bat "%OldPatternP%" "%OldPatchP%" /m /x /f "%DriverPath%\nvwgf2umx_cfg.dll" /o -
+	call JREPL.bat "%OldPatternP%" "%OldPatchP%" /m /x /f "%DriverPath%\nvlddmkm.sys" /o -
 	title Patching SLI support...
 	call JREPL.bat "%PatternSli%" "%PatchSli%" /m /x /f "%DriverPath%\nvlddmkm.sys" /o -
+	goto RunTimestampServer
 )
+
+if exist "%DriverPath%\nvd3dum.dll" call JREPL.bat "%NewPatternP%" "%NewPatchP%" /m /x /f "%DriverPath%\nvd3dum.dll" /o -
+if exist "%DriverPath%\nvd3dum_cfg.dll" call JREPL.bat "%NewPatternP%" "%NewPatchP%" /m /x /f "%DriverPath%\nvd3dum_cfg.dll" /o -
+if exist "%DriverPath%\nvd3dumx.dll" call JREPL.bat "%NewPatternP%" "%NewPatchP%" /m /x /f "%DriverPath%\nvd3dumx.dll" /o -
+if exist "%DriverPath%\nvd3dumx_cfg.dll" call JREPL.bat "%NewPatternP%" "%NewPatchP%" /m /x /f "%DriverPath%\nvd3dumx_cfg.dll" /o -
+if exist "%DriverPath%\nvoglv32.dll" call JREPL.bat "%NewPatternP%" "%NewPatchP%" /m /x /f "%DriverPath%\nvoglv32.dll" /o -
+if exist "%DriverPath%\nvoglv64.dll" call JREPL.bat "%NewPatternP%" "%NewPatchP%" /m /x /f "%DriverPath%\nvoglv64.dll" /o -
+if exist "%DriverPath%\nvwgf2um.dll" call JREPL.bat "%NewPatternP%" "%NewPatchP%" /m /x /f "%DriverPath%\nvwgf2um.dll" /o -
+if exist "%DriverPath%\nvwgf2um_cfg.dll" call JREPL.bat "%NewPatternP%" "%NewPatchP%" /m /x /f "%DriverPath%\nvwgf2um_cfg.dll" /o -
+if exist "%DriverPath%\nvwgf2umx.dll" call JREPL.bat "%NewPatternP%" "%NewPatchP%" /m /x /f "%DriverPath%\nvwgf2umx.dll" /o -
+if exist "%DriverPath%\nvwgf2umx_cfg.dll" call JREPL.bat "%NewPatternP%" "%NewPatchP%" /m /x /f "%DriverPath%\nvwgf2umx_cfg.dll" /o -
+if exist "%DriverPath%\nvlddmkm.sys" call JREPL.bat "%NewPatternP%" "%NewPatchP%" /m /x /f "%DriverPath%\nvlddmkm.sys" /o -
+
+if exist "%DriverPath%\nvd3dum.dll" call JREPL.bat "%PatternCmp%" "%PatchCmp%" /m /x /f "%DriverPath%\nvd3dum.dll" /o -
+if exist "%DriverPath%\nvd3dum_cfg.dll" call JREPL.bat "%PatternCmp%" "%PatchCmp%" /m /x /f "%DriverPath%\nvd3dum_cfg.dll" /o -
+if exist "%DriverPath%\nvd3dumx.dll" call JREPL.bat "%PatternCmp%" "%PatchCmp%" /m /x /f "%DriverPath%\nvd3dumx.dll" /o -
+if exist "%DriverPath%\nvd3dumx_cfg.dll" call JREPL.bat "%PatternCmp%" "%PatchCmp%" /m /x /f "%DriverPath%\nvd3dumx_cfg.dll" /o -
+if exist "%DriverPath%\nvoglv32.dll" call JREPL.bat "%PatternCmp%" "%PatchCmp%" /m /x /f "%DriverPath%\nvoglv32.dll" /o -
+if exist "%DriverPath%\nvoglv64.dll" call JREPL.bat "%PatternCmp%" "%PatchCmp%" /m /x /f "%DriverPath%\nvoglv64.dll" /o -
+if exist "%DriverPath%\nvwgf2um.dll" call JREPL.bat "%PatternCmp%" "%PatchCmp%" /m /x /f "%DriverPath%\nvwgf2um.dll" /o -
+if exist "%DriverPath%\nvwgf2um_cfg.dll" call JREPL.bat "%PatternCmp%" "%PatchCmp%" /m /x /f "%DriverPath%\nvwgf2um_cfg.dll" /o -
+if exist "%DriverPath%\nvwgf2umx.dll" call JREPL.bat "%PatternCmp%" "%PatchCmp%" /m /x /f "%DriverPath%\nvwgf2umx.dll" /o -
+if exist "%DriverPath%\nvwgf2umx_cfg.dll" call JREPL.bat "%PatternCmp%" "%PatchCmp%" /m /x /f "%DriverPath%\nvwgf2umx_cfg.dll" /o -
+if exist "%DriverPath%\nvlddmkm.sys" call JREPL.bat "%PatternCmp%" "%PatchCmp%" /m /x /f "%DriverPath%\nvlddmkm.sys" /o -
 
 :RunTimestampServer
 start "" TimestampServer.exe
@@ -111,7 +139,7 @@ if exist "%DriverPath%\nvwgf2umx_cfg.dll" (
 w32tm /resync /nowait >nul
 
 :Pack3dBinaries
-	if %Version% lss 535 (
+if %Version% lss 535 (
 	title Packing 3D acceleration binaries...
 	if exist "%DriverPath%\nvd3dum.dll" makecab "%DriverPath%\nvd3dum.dll" /l "%DriverPath%"
 	if exist "%DriverPath%\nvd3dum_cfg.dll" makecab "%DriverPath%\nvd3dum_cfg.dll" /l "%DriverPath%"
