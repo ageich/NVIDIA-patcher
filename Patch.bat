@@ -12,7 +12,7 @@ if not %ErrorLevel% == 0 (
 @cd /d "%~dp0"
 
 :SetVariables
-set /p "Version=Enter driver version:"
+set /p "Version=Enter driver version (e.g. 330.67):"
 if not defined Version set "Version=0.0"
 set "DriverPath=%CD%\Display.Driver"
 set "Nvenc32PatchUrl=https://raw.githubusercontent.com/keylase/nvidia-patch/master/win/win10_x64/%Version%/nvencodeapi.1337"
