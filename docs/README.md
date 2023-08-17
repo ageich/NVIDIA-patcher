@@ -32,7 +32,7 @@ Result:
 Now you can plug the network cable / enable Wi-Fi back.
 
 ## SLI hack
-If the patcher detects driver version 446.14, it will enable the ability to pair together different GPUs of similar generation/architecture to work together in SLI (Note: Mixing different VRAM sizes may cause some instability or stop SLI from functioning properly). It can also enable SLI on some non SLI/Crossfire compatible motherboards, making it a replacement for the now discontinued HyperSLI program (Note: The SLI support on non multi-GPU motherboards is not guaranteed).
+If the patcher detects driver version 446.14, it will enable the [ability to pair together different GPUs](https://www.techpowerup.com/forums/threads/sli-with-different-cards.158907/) of similar generation/architecture to work together in SLI (Note: Mixing different VRAM sizes may cause some instability or stop SLI from functioning properly). It can also enable SLI on some non SLI/Crossfire compatible motherboards, making it a replacement for the now discontinued HyperSLI program (Note: The SLI support on non multi-GPU motherboards is not guaranteed).
 
 Mandatory requirements:
 * Driver version 446.14 (exactly this version)
