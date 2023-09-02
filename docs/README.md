@@ -2,7 +2,7 @@
 
 # NVIDIA patcher
 
-Adds 3D acceleration support for P106-090 / P106-100 / P104-100 / P104-101 / P102-100 / CMP 30X / CMP 40X / CMP 50X mining cards.
+Adds 3D acceleration support for P106-090 / P106-100 / P104-100 / P104-101 / P102-100 / CMP 30HX / CMP 40HX / CMP 50HX mining cards.
 
 ## Usage
 1. Unpack driver distributive (xxx.xx-desktop-win10-win11-64bit-international-dch-whql.exe). Only 417.35+ driver needs to be patched! If you are using version 417.23 or older, go straight to step 5.
@@ -25,9 +25,9 @@ The result of the patch will be a signed `/Display.Driver/nv_disp.cat` file. Che
 * P104-101 → GTX 1080
 * P106-090 → GTX 1060 3GB
 * P106-100 → GTX 1060 6GB
-* CMP 30X → GTX 1660 Ti
-* CMP 40X → RTX 2070 Super
-* CMP 50X → RTX 2070 Super
+* CMP 30HX → GTX 1660 Ti
+* CMP 40HX → RTX 2070 Super
+* CMP 50HX → RTX 2070 Super
 
 Result:
 
