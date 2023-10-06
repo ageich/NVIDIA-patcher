@@ -2,7 +2,7 @@
 @setlocal EnableExtensions EnableDelayedExpansion
 
 :CheckAdminRights
-net session >nul 2>&1
+reg query "HKU\S-1-5-19\Environment" >nul 2>&1
 if not %ErrorLevel% == 0 (
 	echo Please run as administator^^!
 	pause
